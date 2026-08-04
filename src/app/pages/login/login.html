@@ -1,0 +1,35 @@
+<div class="login-container">
+    <div class="login-card">
+
+        <!-- Logo -->
+        <div class="logo-wrapper">
+            <img src="logo_horogrue.svg" alt="HoroGrue Logo" class="logo" />
+        </div>
+
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+            <!-- Champ Email -->
+            <div class="form-group">
+                <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
+            </div>
+
+            <!-- Champ Mot de passe -->
+            <div class="form-group">
+                <input type="password" formControlName="password" placeholder="Mot de passe"
+                    autocomplete="current-password" />
+            </div>
+
+            <!-- Message d'erreur dynamique -->
+            <div *ngIf="errorMessage" class="error-banner">
+                {{ errorMessage }}
+            </div>
+
+            <!-- Bouton de soumission pure -->
+            <button type="submit" class="btn-submit" [disabled]="isLoading">
+                {{ isLoading ? 'CONNEXION...' : 'SE CONNECTER' }}
+            </button>
+
+        </form>
+    </div>
+</div>

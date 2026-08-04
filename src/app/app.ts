@@ -1,21 +1,13 @@
-import { Component, inject } from '@angular/core';
-import { ApiService } from './services/api';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  template: `<h1>Test API Angular <-> NestJS</h1>`
+  imports: [RouterOutlet], // Importation du module de routage
+  templateUrl: './app.html',
+  styleUrl: './app.css'
 })
 export class App {
-  private api = inject(ApiService);
-
-  constructor() {
-    this.api.login({ email: 'hollebekeolivier@test.com', password: '12345678' }).subscribe({
-      next: (res) => console.log('✅ SUCCÈS :', res),
-      error: (err) => {
-        // Affiche le tableau contenant les 3 messages de validation de NestJS
-        console.log('❌ Règles de validation non respectées :', err.error.message);
-      }
-    });
-  }
+  title = 'horogrue-frontend';
 }
