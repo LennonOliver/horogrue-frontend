@@ -1,11 +1,198 @@
-/* You can add global styles to this file, and also import other style files */
+/* ========================================================================= */
+/* STYLES GLOBAUX DE L'APPLICATION HOROGRUE                                  */
+/* Bootstrap CSS + Icônes + Adaptations Responsives pour Mobile & Tablettes  */
+/* ========================================================================= */
 
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
 html,
 body {
-    height: 100%;
-    background-color: #f8f9fa;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  height: 100%;
+  background-color: #f8f9fa;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ------------------------------------------------------------------------- */
+/* STYLE DE NAVIGATION ET ONGLET ACTIF                                       */
+/* ------------------------------------------------------------------------- */
+
+.nav-pills .nav-link {
+  color: #6c757d;
+  transition: all 0.15s ease-in-out;
+}
+
+.nav-pills .nav-link:hover {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.08);
+}
+
+/* Quand un onglet est actif : Fond bleu et texte en blanc pur */
+.nav-pills .nav-link.active,
+.nav-pills .nav-link.active i,
+.nav-pills .nav-link.active span {
+  color: #ffffff !important;
+  background-color: #0d6efd !important;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------------- */
+/* STYLES RESPONSIFS (MOBILES < 768px & TABLETTES)                          */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  /* Conversion du layout principal en colonne sur mobile */
+  div.d-flex.min-vh-100 {
+    flex-direction: column !important;
+  }
+
+  /* La barre latérale devient un en-tête horizontal adaptatif */
+  aside {
+    width: 100% !important;
+    border-end-style: none !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  aside .mb-4 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Centrage et taille ajustée du logo sur écran mobile */
+  aside img {
+    max-height: 80px !important;
+    height: 80px !important;
+  }
+
+  /* Navigation sous forme de barre de défilement horizontale sur mobile */
+  ul.nav.nav-pills {
+    flex-direction: row !important;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap !important;
+    padding-bottom: 0.5rem;
+  }
+
+  ul.nav.nav-pills .nav-item {
+    display: inline-block;
+  }
+
+  ul.nav.nav-pills .nav-link {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.875rem;
+  }
+
+  /* Zone de contenu principal */
+  main {
+    padding: 1rem !important;
+    width: 100% !important;
+  }
+
+  /* Adaptation de l'en-tête principal (Titre + Profil) */
+  header.d-flex {
+    flex-direction: column-reverse !important;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  header.d-flex > div:first-child {
+    width: 100%;
+  }
+
+  /* Formate la carte profil en haut à droite sur mobile */
+  header .bg-white.rounded-pill {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* TRANSFORMATION DESIGN DES TABLEAUX EN CARTES POUR ÉCRANS MOBILES        */
+  /* ----------------------------------------------------------------------- */
+  .table-responsive {
+    overflow-x: visible !important;
+  }
+
+  .table-responsive-cards thead {
+    display: none !important;
+  }
+
+  .table-responsive-cards tbody tr {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  }
+
+  .table-responsive-cards tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 0.65rem 0 !important;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 0.875rem;
+    width: 100% !important;
+  }
+
+  .table-responsive-cards tbody td:first-child {
+    padding-top: 0 !important;
+  }
+
+  .table-responsive-cards tbody td:last-child {
+    border-bottom: none;
+    padding-bottom: 0 !important;
+    padding-top: 0.85rem !important;
+    justify-content: space-between !important;
+  }
+
+  .table-responsive-cards tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    margin-right: 0.5rem;
+    text-align: left;
+    flex-shrink: 0;
+    min-width: 100px;
+  }
+
+  /* Empeche le débordement des textes longs et badges sur mobile */
+  .table-responsive-cards tbody td > div,
+  .table-responsive-cards tbody td > span {
+    max-width: calc(100% - 110px) !important;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .table-responsive-cards tbody td .badge {
+    white-space: normal !important;
+    text-align: right;
+    display: inline-block;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+
+  /* Alignement harmonieux des 2 boutons d'action sur mobile */
+  .table-responsive-cards tbody td .d-inline-flex {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 220px;
+    gap: 0.4rem !important;
+    align-items: flex-end;
+  }
+
+  .table-responsive-cards tbody td .d-inline-flex .btn {
+    width: 100% !important;
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

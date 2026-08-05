@@ -1,0 +1,449 @@
+<!-- EN-TÊTE DU MODULE (Titre & Profil utilisateur) -->
+<header class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1 text-dark">Gestion du Parc Automobile 🚚</h1>
+    <p class="text-secondary mb-0">Suivi en temps réel du kilométrage, des entretiens et des contrôles techniques.</p>
+  </div>
+
+  <!-- Pastille de profil de l'utilisateur avec déconnexion -->
+  <div class="d-flex align-items-center bg-white rounded-pill px-3 py-2 border shadow-sm gap-2">
+    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">
+      OH
+    </div>
+    <span class="fw-semibold text-dark me-1" style="font-size: 0.9rem;">{{ userFullName }}</span>
+    <button (click)="logout()" class="btn btn-sm btn-outline-danger border-0 rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Se déconnecter">
+      <i class="bi bi-box-arrow-right fs-6"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===================================================================== -->
+<!-- SECTION DES 3 CARTES STATISTIQUES (KPIs VÉHICULES)                    -->
+<!-- ===================================================================== -->
+<section class="row g-3 mb-4">
+  
+  <!-- Carte 1 : Total Véhicules du Parc -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-body p-3 d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            Total Véhicules
+          </div>
+          <div class="display-6 fw-bold text-dark mb-0">{{ totalVehicules }}</div>
+        </div>
+        <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background-color: #e3f2fd; color: #0d6efd; width: 50px; height: 50px;">
+          <i class="bi bi-truck fs-4"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carte 2 : Alertes Entretien -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-body p-3 d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            Entretiens Requis / Proches
+          </div>
+          <div class="display-6 fw-bold text-dark mb-0">{{ alertesEntretienCount }}</div>
+        </div>
+        <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background-color: #fff3e0; color: #f57c00; width: 50px; height: 50px;">
+          <i class="bi bi-wrench-adjustable-circle fs-4"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carte 3 : Alertes Contrôle Technique -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-body p-3 d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            Contrôles Techniques à venir
+          </div>
+          <div class="display-6 fw-bold text-dark mb-0">{{ alertesCtCount }}</div>
+        </div>
+        <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="background-color: #ffebee; color: #c62828; width: 50px; height: 50px;">
+          <i class="bi bi-shield-exclamation fs-4"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ===================================================================== -->
+<!-- TABLEAU PRINCIPAL DES VÉHICULES DU PARC                               -->
+<!-- ===================================================================== -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <h2 class="h5 fw-bold mb-0 text-dark">Liste Complète des Véhicules</h2>
+    
+    <div class="d-flex align-items-center gap-2">
+      <!-- Bouton d'ajout d'un nouveau véhicule -->
+      <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold rounded-3 shadow-2xs" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle-fill me-1"></i> Nouveau Véhicule
+      </button>
+
+      <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">
+        {{ vehiculesList.length }} véhicule(s)
+      </span>
+    </div>
+  </div>
+
+  <div class="card-body px-4 pb-4">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 table-responsive-cards">
+        <thead>
+          <tr class="text-uppercase text-secondary border-bottom" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            <th scope="col" class="py-3 fw-bold">Véhicule</th>
+            <th scope="col" class="py-3 fw-bold">Immatriculation</th>
+            <th scope="col" class="py-3 fw-bold">Kilométrage Actuel</th>
+            <th scope="col" class="py-3 fw-bold">Prochain Entretien</th>
+            <th scope="col" class="py-3 fw-bold">Prochain CT</th>
+            <th scope="col" class="py-3 fw-bold text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (vehicule of vehiculesList; track vehicule.idVehicule) {
+            <tr>
+              <!-- Modèle & Marque du véhicule -->
+              <td class="py-3" data-label="Véhicule">
+                <div class="text-end text-md-start">
+                  <div class="fw-bold text-dark mb-0 fs-6">{{ vehicule.marqueModele }}</div>
+                  <div class="text-secondary small font-monospace">Châssis: {{ vehicule.numeroChassis }}</div>
+                </div>
+              </td>
+
+              <!-- Badge d'Immatriculation -->
+              <td class="py-3" data-label="Immatriculation">
+                <span class="badge bg-white text-dark border border-danger border-2 font-monospace px-3 py-2 shadow-2xs fs-7 rounded-2">
+                  {{ vehicule.immatriculation }}
+                </span>
+              </td>
+
+              <!-- Kilométrage actuel relevé -->
+              <td class="py-3 fw-bold text-dark" data-label="Kilométrage Actuel">
+                {{ vehicule.kilometrageActuelFormatted }}
+              </td>
+
+              <!-- État et statut du prochain entretien -->
+              <td class="py-3" data-label="Prochain Entretien">
+                <div>
+                  <div class="fw-semibold text-dark">
+                    {{ vehicule.kmProchainEntretienFormatted }}
+                  </div>
+                  @if (vehicule.statusEntretien === 'danger') {
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 mt-1">
+                      ⚠️ Entretien dépassé de {{ vehicule.kmRestantsAbsFormatted }} km
+                    </span>
+                  } @else if (vehicule.statusEntretien === 'warning') {
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 mt-1">
+                      ⚠️ Entretien proche ({{ vehicule.kmRestantsAbsFormatted }} km restants)
+                    </span>
+                  } @else {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 mt-1">
+                      ✓ Entretien à jour
+                    </span>
+                  }
+                </div>
+              </td>
+
+              <!-- Statut du contrôle technique -->
+              <td class="py-3" data-label="Prochain CT">
+                <div>
+                  <div class="fw-semibold text-dark">
+                    {{ vehicule.dateProchainCtFormatted }}
+                  </div>
+                  @if (vehicule.statusCt === 'danger') {
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 mt-1 d-block">
+                      🔴 CT Expiré / Dépassé !
+                    </span>
+                    <a href="https://www.autosecurite.be/fr/portail-de-rendez-vous/" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-danger text-white px-2 py-1 mt-1 fw-semibold text-decoration-none rounded-2 d-inline-flex align-items-center shadow-2xs" style="font-size: 0.75rem;" title="Prendre rendez-vous sur AutoSécurité">
+                      <i class="bi bi-calendar-event me-1"></i> Prendre RDV
+                    </a>
+                  } @else if (vehicule.statusCt === 'warning') {
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 mt-1 d-block">
+                      ⚠️ CT dans {{ vehicule.daysUntilCt }} jours
+                    </span>
+                    <a href="https://www.autosecurite.be/fr/portail-de-rendez-vous/" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning text-dark px-2 py-1 mt-1 fw-semibold text-decoration-none rounded-2 d-inline-flex align-items-center shadow-2xs" style="font-size: 0.75rem;" title="Prendre rendez-vous sur AutoSécurité">
+                      <i class="bi bi-calendar-event me-1"></i> Prendre RDV
+                    </a>
+                  } @else {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 mt-1">
+                      ✓ CT à jour
+                    </span>
+                  }
+                </div>
+              </td>
+
+              <!-- Boutons d'actions : KM + Modifier + Supprimer -->
+              <td class="py-3 text-end" data-label="Actions">
+                <div class="d-inline-flex gap-1">
+                  <button class="btn btn-outline-primary btn-sm px-2 py-1 fw-medium rounded-2" (click)="openKmModal(vehicule)" title="Mettre à jour le kilométrage actuel">
+                    <i class="bi bi-speedometer2 me-1"></i> Mettre à jour KM
+                  </button>
+                  <button class="btn btn-primary btn-sm px-2 py-1 fw-medium rounded-2" (click)="openEditModal(vehicule)" title="Modifier les informations du véhicule">
+                    <i class="bi bi-pencil-square me-1"></i> Modifier
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-medium rounded-2" (click)="openDeleteModal(vehicule)" title="Supprimer ce véhicule">
+                    <i class="bi bi-trash me-1"></i> Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-5 text-secondary">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                Aucun véhicule enregistré pour le moment.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODALE POP-UP 1 : MISE À JOUR RAPIDE DU KILOMÉTRAGE                       -->
+<!-- ========================================================================= -->
+@if (selectedVehiculeForKm) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        <form (ngSubmit)="submitKilometrage()">
+          
+          <!-- En-tête modale -->
+          <div class="modal-header border-bottom-0 pb-0">
+            <h5 class="modal-title fw-bold text-dark">
+              <i class="bi bi-speedometer2 text-primary me-2"></i>Mettre à jour le kilométrage
+            </h5>
+            <button type="button" class="btn-close" (click)="closeKmModal()"></button>
+          </div>
+
+          <!-- Corps de la modale -->
+          <div class="modal-body py-4">
+            <div class="bg-light p-3 rounded-3 mb-3 border">
+              <div class="fw-bold text-dark">{{ selectedVehiculeForKm.marqueModele }}</div>
+              <div class="text-secondary small">Plaque : <span class="font-monospace text-dark fw-semibold">{{ selectedVehiculeForKm.immatriculation }}</span></div>
+              <div class="text-secondary small">Ancien Kilométrage : <span class="fw-bold text-dark">{{ selectedVehiculeForKm.kilometrageActuelFormatted }}</span></div>
+            </div>
+
+            <!-- Champ de saisie du nouveau kilométrage avec validation sur Entrée -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-dark">Nouveau Kilométrage Relevé (km)</label>
+              <input type="number" 
+                     name="kilometrage"
+                     class="form-control form-control-lg shadow-none fs-5 fw-bold text-primary" 
+                     [(ngModel)]="newKilometrage" 
+                     min="0"
+                     placeholder="Ex: 155000"
+                     autofocus />
+            </div>
+
+            <!-- Message d'erreur -->
+            @if (kmErrorMessage) {
+              <div class="alert alert-danger py-2 mb-0 border-0 rounded-3">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ kmErrorMessage }}
+              </div>
+            }
+          </div>
+
+          <!-- Pied de la modale -->
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light border px-4" (click)="closeKmModal()" [disabled]="isUpdatingKm">
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold" [disabled]="isUpdatingKm">
+              {{ isUpdatingKm ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODALE POP-UP 2 : CRÉATION & MODIFICATION D'UN VÉHICULE                  -->
+<!-- ========================================================================= -->
+@if (showVehiculeModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        <form (ngSubmit)="submitSaveVehicule()">
+          
+          <!-- En-tête de la modale -->
+          <div class="modal-header border-bottom pb-3">
+            <h5 class="modal-title fw-bold text-dark">
+              @if (isCreateMode) {
+                <i class="bi bi-plus-circle-fill text-primary me-2"></i>Nouveau Véhicule
+              } @else {
+                <i class="bi bi-pencil-square text-primary me-2"></i>Modifier le véhicule [{{ selectedVehiculeForEdit?.immatriculation }}]
+              }
+            </h5>
+            <button type="button" class="btn-close" (click)="closeVehiculeModal()"></button>
+          </div>
+
+          <!-- Formulaire -->
+          <div class="modal-body py-4">
+            <div class="row g-3">
+              
+              <!-- Immatriculation -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Immatriculation</label>
+                <input type="text" 
+                       name="immatriculation"
+                       class="form-control font-monospace fw-bold text-dark" 
+                       [(ngModel)]="editForm.immatriculation" 
+                       placeholder="Ex: 1-ABC-123"
+                       required 
+                       autofocus />
+              </div>
+
+              <!-- Numéro de Châssis -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Numéro de Châssis (17 car.)</label>
+                <input type="text" 
+                       name="numeroChassis"
+                       class="form-control font-monospace" 
+                       [(ngModel)]="editForm.numeroChassis" 
+                       maxLength="17"
+                       placeholder="Ex: VF1R1234567890123"
+                       required />
+              </div>
+
+              <!-- Marque -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Marque</label>
+                <input type="text" 
+                       name="nomMarque"
+                       class="form-control" 
+                       [(ngModel)]="editForm.nomMarque" 
+                       placeholder="Ex: Renault" />
+              </div>
+
+              <!-- Modèle -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Modèle</label>
+                <input type="text" 
+                       name="nomModele"
+                       class="form-control" 
+                       [(ngModel)]="editForm.nomModele" 
+                       placeholder="Ex: Master" />
+              </div>
+
+              <!-- Date Mise en Circulation -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Mise en circulation</label>
+                <input type="date" 
+                       name="dateMec"
+                       class="form-control" 
+                       [(ngModel)]="editForm.dateMec" 
+                       [max]="maxDateToday" />
+              </div>
+
+              <!-- Kilométrage Actuel -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Kilométrage Actuel (km)</label>
+                <input type="number" 
+                       name="kilometrageActuel"
+                       class="form-control" 
+                       [(ngModel)]="editForm.kilometrageActuel" 
+                       min="0" />
+              </div>
+
+              <!-- Kilométrage Prochain Entretien -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Prochain Entretien (km)</label>
+                <input type="number" 
+                       name="kmProchainEntretien"
+                       class="form-control" 
+                       [(ngModel)]="editForm.kmProchainEntretien" 
+                       placeholder="Ex: 150000" />
+              </div>
+
+              <!-- Date Prochain Contrôle Technique -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">Date Prochain CT</label>
+                <input type="date" 
+                       name="dateProchainCt"
+                       class="form-control" 
+                       [(ngModel)]="editForm.dateProchainCt" />
+              </div>
+
+            </div>
+
+            <!-- Message d'erreur -->
+            @if (vehiculeErrorMessage) {
+              <div class="alert alert-danger py-2 mt-3 mb-0 border-0 rounded-3">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ vehiculeErrorMessage }}
+              </div>
+            }
+          </div>
+
+          <!-- Pied de modale avec boutons de validation -->
+          <div class="modal-footer border-top pt-3">
+            <button type="button" class="btn btn-light border px-4" (click)="closeVehiculeModal()" [disabled]="isSavingVehicule">
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold" [disabled]="isSavingVehicule">
+              {{ isSavingVehicule ? 'Enregistrement...' : (isCreateMode ? 'Créer le Véhicule' : 'Enregistrer les modifications') }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODALE POP-UP 3 : CONFIRMATION DE SUPPRESSION                             -->
+<!-- ========================================================================= -->
+@if (selectedVehiculeForDelete) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        
+        <!-- En-tête modale de suppression -->
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold text-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmer la suppression
+          </h5>
+          <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+        </div>
+
+        <!-- Corps modale -->
+        <div class="modal-body py-3">
+          <p class="text-dark mb-2">Êtes-vous sûr de vouloir supprimer définitivement le véhicule suivant ?</p>
+          <div class="bg-danger-subtle p-3 rounded-3 border border-danger-subtle">
+            <div class="fw-bold text-dark fs-6">{{ selectedVehiculeForDelete.marqueModele }}</div>
+            <div class="text-secondary small font-monospace">Plaque : {{ selectedVehiculeForDelete.immatriculation }}</div>
+            <div class="text-secondary small font-monospace">Châssis : {{ selectedVehiculeForDelete.numeroChassis }}</div>
+          </div>
+          <div class="text-muted small mt-2">
+            ⚠️ Cette action est irréversible et supprimera le véhicule de la base de données.
+          </div>
+        </div>
+
+        <!-- Pied modale avec validation -->
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light border px-4" (click)="closeDeleteModal()" [disabled]="isDeletingVehicule">
+            Annuler
+          </button>
+          <button type="button" class="btn btn-danger px-4 fw-semibold" (click)="confirmDeleteVehicule()" [disabled]="isDeletingVehicule">
+            {{ isDeletingVehicule ? 'Suppression...' : 'Supprimer définitivement' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

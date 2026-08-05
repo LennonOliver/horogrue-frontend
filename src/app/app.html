@@ -1,1 +1,63 @@
-<router-outlet />
+<!-- ========================================================================= -->
+<!-- LAYOUT GLOBAL HOROGRUE                                                    -->
+<!-- Si connecté & pas sur /login : Sidebar globale unique + <router-outlet />  -->
+<!-- Si sur /login ou déconnecté : Plein écran direct avec <router-outlet />    -->
+<!-- ========================================================================= -->
+
+@if (showSidebar) {
+  <div class="d-flex min-vh-100 bg-light">
+
+    <!-- ======================================================================= -->
+    <!-- BARRE LATÉRALE UNIQUE DE NAVIGATION GLOBALE (SIDEBAR)                   -->
+    <!-- ======================================================================= -->
+    <aside class="bg-white border-end d-flex flex-column p-3 flex-shrink-0" style="width: 260px;">
+      <!-- Logo officiel HoroGrue grand format -->
+      <div class="d-flex align-items-center justify-content-center mb-4 px-1 py-2">
+        <img src="logo_horogrue.svg" alt="Horo Grue Logo" style="max-height: 120px; height: 120px; width: auto;" class="img-fluid" />
+      </div>
+
+      <!-- Navigation principale dynamique avec détection active automatique -->
+      <ul class="nav nav-pills flex-column mb-auto gap-1">
+        <li class="nav-item">
+          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-building"></i>
+            <span>Chantiers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/ouvriers" routerLinkActive="active" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-people"></i>
+            <span>Ouvriers</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/vehicules" routerLinkActive="active" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-truck-front-fill"></i>
+            <span>Véhicules</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-clock-history"></i>
+            <span>Sessions</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- ZONE PRINCIPALE DE CONTENU DYNAMIQUE -->
+    <main class="flex-grow-1 p-4 overflow-y-auto">
+      <router-outlet />
+    </main>
+
+  </div>
+} @else {
+  <!-- Écran de connexion (Login) en plein écran sans aucune navigation -->
+  <router-outlet />
+}
