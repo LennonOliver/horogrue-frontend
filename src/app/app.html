@@ -49,6 +49,25 @@
           </a>
         </li>
       </ul>
+
+      <!-- Section Utilisateur et Déconnexion globale dans la Sidebar -->
+      <div class="border-top pt-3 mt-3 sidebar-user-section">
+        <div class="bg-light border rounded-3 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.85rem;">
+              OH
+            </div>
+            <div>
+              <div class="fw-bold text-dark small text-wrap">Olivier Hollebeke</div>
+              <div class="text-secondary small" style="font-size: 0.75rem;">Gérant</div>
+            </div>
+          </div>
+          <button (click)="logout()" class="btn btn-sm btn-outline-danger w-100 fw-semibold py-1-5 rounded-2 d-flex align-items-center justify-content-center gap-2" title="Se déconnecter">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      </div>
     </aside>
 
     <!-- ZONE PRINCIPALE DE CONTENU DYNAMIQUE -->

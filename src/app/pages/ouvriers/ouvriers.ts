@@ -17,6 +17,8 @@ export interface OuvrierDisplayItem {
   actif: boolean;
   cumulHeuresFormatted: string;
   totalHeures: number;
+  estAffecte: boolean;
+  nomChantierAffecte?: string;
 }
 
 @Component({
@@ -58,12 +60,6 @@ export class Ouvriers implements OnInit {
   };
   isSavingOuvrier: boolean = false;
   ouvrierErrorMessage: string = '';
-
-  // -------------------------------------------------------------------------
-  // MODALE 2 : Confirmation de suppression
-  // -------------------------------------------------------------------------
-  selectedOuvrierForDelete: OuvrierDisplayItem | null = null;
-  isDeletingOuvrier: boolean = false;
 
   ngOnInit(): void {
     this.loadOuvriersData();
@@ -111,10 +107,15 @@ export class Ouvriers implements OnInit {
     }
 
     this.ouvriersList = ouvriersApi.map(o => {
-      // Calcul du cumul d'heures totales pour cet ouvrier depuis les sessions
-      const totalHeures = sessionsApi
-        .filter(s => s.ouvrier?.idOuvrier === o.idOuvrier)
-        .reduce((sum, s) => sum + (Number(s.heuresPrestees) || 0), 0);
+      // Sessions de travail liées à cet ouvrier ayant un chantier rattaché
+      const sessionsOuvrier = sessionsApi.filter(s => s.ouvrier?.idOuvrier === o.idOuvrier && s.chantier);
+
+      // Calcul du cumul d'heures totales pour cet ouvrier
+      const totalHeures = sessionsOuvrier.reduce((sum, s) => sum + (Number(s.heuresPrestees) || 0), 0);
+
+      // Vérification si l'ouvrier est affecté à un chantier
+      const estAffecte = sessionsOuvrier.length > 0;
+      const nomChantierAffecte = estAffecte ? (sessionsOuvrier[0].chantier?.nomProjet || 'Chantier en cours') : undefined;
 
       // Extraction du libellé de qualification
       let qualif = 'Ouvrier polyvalent';
@@ -132,16 +133,14 @@ export class Ouvriers implements OnInit {
         qualification: qualif,
         actif: o.actif ?? true,
         totalHeures,
-        cumulHeuresFormatted: `${this.formatNumber(totalHeures)} hrs`
+        cumulHeuresFormatted: `${this.formatNumber(totalHeures)} hrs`,
+        estAffecte,
+        nomChantierAffecte
       };
     });
 
-    // Tri alphabétique par Nom puis Prénom
-    this.ouvriersList.sort((a, b) => {
-      const cmpNom = a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
-      if (cmpNom !== 0) return cmpNom;
-      return a.prenom.localeCompare(b.prenom, 'fr', { sensitivity: 'base' });
-    });
+    // Tri : Actifs d'abord (true avant false), puis par ordre alphabétique Nom / Prénom
+    this.sortOuvriersList();
 
     // Calcul des statistiques
     this.totalOuvriers = this.ouvriersList.length;
@@ -162,7 +161,9 @@ export class Ouvriers implements OnInit {
         qualification: 'Grutier Senior',
         actif: true,
         totalHeures: 142.5,
-        cumulHeuresFormatted: '142,5 hrs'
+        cumulHeuresFormatted: '142,5 hrs',
+        estAffecte: true,
+        nomChantierAffecte: 'Résidence Les Lilas'
       },
       {
         idOuvrier: '2',
@@ -172,7 +173,9 @@ export class Ouvriers implements OnInit {
         qualification: 'Chauffeur Poids Lourds',
         actif: true,
         totalHeures: 98.0,
-        cumulHeuresFormatted: '98,0 hrs'
+        cumulHeuresFormatted: '98,0 hrs',
+        estAffecte: true,
+        nomChantierAffecte: 'Tour Horizon'
       },
       {
         idOuvrier: '3',
@@ -182,11 +185,14 @@ export class Ouvriers implements OnInit {
         qualification: 'Apprenti Manœuvre',
         actif: false,
         totalHeures: 28.5,
-        cumulHeuresFormatted: '28,5 hrs'
+        cumulHeuresFormatted: '28,5 hrs',
+        estAffecte: false
       }
     ];
 
     this.ouvriersList = defaultOuvriers;
+    this.sortOuvriersList();
+
     this.totalOuvriers = this.ouvriersList.length;
     this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
     this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
@@ -280,54 +286,38 @@ export class Ouvriers implements OnInit {
   }
 
   /**
-   * Bascule rapidement le statut actif/inactif d'un ouvrier
+   * Tri dynamique : Actifs d'abord (true avant false), puis par ordre alphabétique Nom / Prénom
+   */
+  private sortOuvriersList(): void {
+    this.ouvriersList.sort((a, b) => {
+      if (a.actif !== b.actif) {
+        return a.actif ? -1 : 1;
+      }
+      const cmpNom = a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
+      if (cmpNom !== 0) return cmpNom;
+      return a.prenom.localeCompare(b.prenom, 'fr', { sensitivity: 'base' });
+    });
+  }
+
+  /**
+   * Bascule rapidement le statut actif/inactif d'un ouvrier avec ré-ordonnancement dynamique immédiat
    */
   toggleStatus(ouvrier: OuvrierDisplayItem): void {
     const newStatus = !ouvrier.actif;
     ouvrier.actif = newStatus;
 
+    // Ré-ordonnancement dynamique immédiat du tableau
+    this.sortOuvriersList();
+    this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
+    this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
+    this.cd.detectChanges();
+
     this.apiService.updateOuvrier(ouvrier.idOuvrier, { actif: newStatus }).subscribe({
-      next: () => {
-        this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
-        this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
-        this.cd.detectChanges();
-      },
       error: (err) => {
         console.error('Erreur lors du changement de statut :', err);
-        this.cd.detectChanges();
-      }
-    });
-  }
-
-  // =========================================================================
-  // GESTION DE LA MODALE 2 : Confirmation de suppression
-  // =========================================================================
-  openDeleteModal(ouvrier: OuvrierDisplayItem): void {
-    this.selectedOuvrierForDelete = ouvrier;
-  }
-
-  closeDeleteModal(): void {
-    this.selectedOuvrierForDelete = null;
-    this.isDeletingOuvrier = false;
-    this.cd.detectChanges();
-  }
-
-  confirmDeleteOuvrier(): void {
-    if (!this.selectedOuvrierForDelete) return;
-
-    const targetId = this.selectedOuvrierForDelete.idOuvrier;
-
-    // Fermeture immédiate de la modale de suppression
-    this.closeDeleteModal();
-
-    this.apiService.deleteOuvrier(targetId).subscribe({
-      next: () => {
-        this.loadOuvriersData();
-      },
-      error: (err) => {
-        console.error('Erreur lors de la suppression de l\'ouvrier :', err);
-        this.ouvriersList = this.ouvriersList.filter(o => o.idOuvrier !== targetId);
-        this.totalOuvriers = this.ouvriersList.length;
+        // En cas d'erreur de communication API, rétablissement du statut précédent
+        ouvrier.actif = !newStatus;
+        this.sortOuvriersList();
         this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
         this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
         this.cd.detectChanges();

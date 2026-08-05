@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { forkJoin, catchError, of } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { ApiService, ChantierApi, VehiculeApi, OuvrierApi, SessionTravailApi } from '../../services/api';
@@ -42,7 +43,7 @@ export interface CollaborateurItem {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -143,10 +144,8 @@ export class Dashboard implements OnInit {
     }
 
     this.chantiers = chantiersApi.map(c => {
-      // Calcul du cumul d'heures spécifiques à ce chantier
-      const heuresCumulees = sessionsApi
-        .filter(s => s.chantier?.idChantier === c.idChantier)
-        .reduce((total, s) => total + (Number(s.heuresPrestees) || 0), 0);
+      const sessionsDuChantier = sessionsApi.filter(s => s.chantier?.idChantier === c.idChantier);
+      const heuresCumulees = sessionsDuChantier.reduce((total, s) => total + (Number(s.heuresPrestees) || 0), 0);
 
       return {
         id: c.idChantier,
@@ -301,5 +300,56 @@ export class Dashboard implements OnInit {
    */
   ajouterSession(chantier: ChantierItem): void {
     console.log('Ajout de session pour le chantier :', chantier.nom);
+  }
+
+  // =========================================================================
+  // GESTION DE LA MODALE : Modification d'un chantier
+  // =========================================================================
+  showChantierModal: boolean = false;
+  selectedChantierForEdit: ChantierItem | null = null;
+  editChantierForm = {
+    nomProjet: '',
+    statut: 'En cours'
+  };
+  isSavingChantier: boolean = false;
+
+  openEditChantierModal(chantier: ChantierItem): void {
+    this.selectedChantierForEdit = chantier;
+    this.editChantierForm = {
+      nomProjet: chantier.nom,
+      statut: chantier.statut
+    };
+    this.showChantierModal = true;
+  }
+
+  closeEditChantierModal(): void {
+    this.showChantierModal = false;
+    this.selectedChantierForEdit = null;
+    this.isSavingChantier = false;
+    this.cd.detectChanges();
+  }
+
+  submitSaveChantier(): void {
+    if (!this.selectedChantierForEdit || !this.editChantierForm.nomProjet.trim()) return;
+
+    this.isSavingChantier = true;
+    const targetId = this.selectedChantierForEdit.id;
+    const payload = {
+      nomProjet: this.editChantierForm.nomProjet.trim(),
+      statut: this.editChantierForm.statut
+    };
+
+    // Fermeture synchrone immédiate de la modale
+    this.closeEditChantierModal();
+
+    this.apiService.updateChantier(targetId, payload).subscribe({
+      next: () => {
+        this.loadDashboardData();
+      },
+      error: (err) => {
+        console.error('Erreur lors de la modification du chantier :', err);
+        this.loadDashboardData();
+      }
+    });
   }
 }

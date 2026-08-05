@@ -58,10 +58,10 @@ body {
     margin-bottom: 0.5rem !important;
   }
 
-  /* Centrage et taille ajustée du logo sur écran mobile */
+  /* Centrage et taille agrandie du logo sur écran mobile */
   aside img {
-    max-height: 80px !important;
-    height: 80px !important;
+    max-height: 140px !important;
+    height: 140px !important;
   }
 
   /* Navigation sous forme de barre de défilement horizontale sur mobile */
@@ -100,9 +100,23 @@ body {
   }
 
   /* Formate la carte profil en haut à droite sur mobile */
-  header .bg-white.rounded-pill {
-    width: 100%;
-    justify-content: space-between;
+  header .bg-white.rounded-pill,
+  header .header-profile-pill {
+    width: 100% !important;
+    justify-content: space-between !important;
+    padding: 0.6rem 1rem !important;
+  }
+
+  header .header-profile-pill .btn {
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 50rem !important;
+  }
+
+  /* Section utilisateur dans la barre de navigation mobile */
+  .sidebar-user-section {
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
   }
 
   /* ----------------------------------------------------------------------- */

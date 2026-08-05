@@ -109,6 +109,11 @@ export class ApiService {
     return this.http.get<ChantierApi[]>(`${this.apiUrl}/chantiers`);
   }
 
+  /** Met à jour les informations d'un chantier */
+  updateChantier(idChantier: string, updateDto: any): Observable<ChantierApi> {
+    return this.http.patch<ChantierApi>(`${this.apiUrl}/chantiers/${idChantier}`, updateDto);
+  }
+
   // -------------------------------------------------------------------------
   // 3. GESTION DU PARC AUTOMOBILE (VÉHICULES)
   // -------------------------------------------------------------------------

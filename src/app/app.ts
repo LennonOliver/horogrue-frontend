@@ -28,4 +28,11 @@ export class App {
   get showSidebar(): boolean {
     return this.authService.isLoggedIn() && !this.router.url.includes('login');
   }
+
+  /**
+   * Action de déconnexion globale
+   */
+  logout(): void {
+    this.authService.logout();
+  }
 }
