@@ -284,11 +284,13 @@
               
               <!-- Immatriculation -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold text-dark">Immatriculation</label>
+                <label class="form-label fw-semibold text-dark">Immatriculation (max 9 car.) *</label>
                 <input type="text" 
                        name="immatriculation"
-                       class="form-control font-monospace fw-bold text-dark" 
+                       class="form-control font-monospace fw-bold text-dark text-uppercase" 
                        [(ngModel)]="editForm.immatriculation" 
+                       (input)="editForm.immatriculation = editForm.immatriculation.toUpperCase()"
+                       maxLength="9"
                        placeholder="Ex: 1-ABC-123"
                        required 
                        autofocus />
@@ -296,12 +298,13 @@
 
               <!-- Numéro de Châssis -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold text-dark">Numéro de Châssis (17 car.)</label>
+                <label class="form-label fw-semibold text-dark">Numéro de Châssis *</label>
                 <input type="text" 
                        name="numeroChassis"
-                       class="form-control font-monospace" 
+                       class="form-control font-monospace text-uppercase" 
                        [(ngModel)]="editForm.numeroChassis" 
-                       maxLength="17"
+                       (input)="editForm.numeroChassis = editForm.numeroChassis.toUpperCase()"
+                       maxLength="25"
                        placeholder="Ex: VF1R1234567890123"
                        required />
               </div>

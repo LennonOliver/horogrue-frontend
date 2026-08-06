@@ -25,7 +25,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+          <a routerLink="/chantiers" routerLinkActive="active" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
             <i class="bi bi-building"></i>
             <span>Chantiers</span>
           </a>
@@ -43,9 +43,15 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+          <a routerLink="/sessions" routerLinkActive="active" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
             <i class="bi bi-clock-history"></i>
-            <span>Sessions</span>
+            <span>Sessions & Relevés</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/logs" routerLinkActive="active" class="nav-link d-flex align-items-center gap-2 fw-medium py-2 hover-bg-light">
+            <i class="bi bi-shield-check"></i>
+            <span>Journal d'Audit</span>
           </a>
         </li>
       </ul>
@@ -79,4 +85,75 @@
 } @else {
   <!-- Écran de connexion (Login) en plein écran sans aucune navigation -->
   <router-outlet />
+}
+
+<!-- ========================================================================= -->
+<!-- CONTENEUR GLOBAL DES NOTIFICATIONS TOASTS FLOTTANTS                       -->
+<!-- ========================================================================= -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="toast show border-0 shadow-lg mb-2 rounded-3 text-white transition-all" 
+         [ngClass]="{
+           'bg-success': toast.type === 'success',
+           'bg-danger': toast.type === 'danger',
+           'bg-warning text-dark': toast.type === 'warning',
+           'bg-primary': toast.type === 'info'
+         }">
+      <div class="d-flex align-items-center p-3">
+        <div class="fs-4 me-3">
+          @if (toast.type === 'success') { <i class="bi bi-check-circle-fill"></i> }
+          @if (toast.type === 'danger') { <i class="bi bi-exclamation-triangle-fill"></i> }
+          @if (toast.type === 'warning') { <i class="bi bi-exclamation-diamond-fill"></i> }
+          @if (toast.type === 'info') { <i class="bi bi-info-circle-fill"></i> }
+        </div>
+        <div class="flex-grow-1">
+          <h6 class="fw-bold mb-1" [class.text-dark]="toast.type === 'warning'">{{ toast.title }}</h6>
+          <div class="small" [class.text-dark]="toast.type === 'warning'">{{ toast.message }}</div>
+        </div>
+        <button type="button" class="btn-close ms-2" [class.btn-close-white]="toast.type !== 'warning'" (click)="toastService.remove(toast.id)"></button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODALE GLOBALE DE CONFIRMATION AVANT SUPPRESSION                          -->
+<!-- ========================================================================= -->
+@if (toastService.confirmModal(); as dialog) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55); backdrop-filter: blur(2px); z-index: 1085;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        
+        <div class="modal-header border-0 pt-4 px-4 pb-2" [ngClass]="dialog.type === 'danger' ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning-emphasis'">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" 
+                 [style.background-color]="dialog.type === 'danger' ? '#f8d7da' : '#fff3cd'"
+                 [style.color]="dialog.type === 'danger' ? '#842029' : '#664d03'"
+                 style="width: 42px; height: 42px;">
+              <i class="bi fs-4" [ngClass]="dialog.type === 'danger' ? 'bi-trash-fill' : 'bi-exclamation-triangle-fill'"></i>
+            </div>
+            <h5 class="modal-title fw-bold mb-0 text-dark">{{ dialog.title }}</h5>
+          </div>
+          <button type="button" class="btn-close" (click)="onCancel()"></button>
+        </div>
+
+        <div class="modal-body p-4 text-dark fs-6">
+          {{ dialog.message }}
+        </div>
+
+        <div class="modal-footer border-top-0 pb-4 px-4 pt-0 gap-2">
+          <button type="button" class="btn btn-light border px-4 rounded-3 fw-semibold" (click)="onCancel()">
+            {{ dialog.cancelText || 'Annuler' }}
+          </button>
+          <button type="button" 
+                  class="btn px-4 rounded-3 fw-semibold text-white" 
+                  [ngClass]="dialog.type === 'danger' ? 'btn-danger' : 'btn-warning'"
+                  (click)="onConfirm()">
+            {{ dialog.confirmText || 'Confirmer la suppression' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth';
 import { ApiService, OuvrierApi, SessionTravailApi } from '../../services/api';
+import { ToastService } from '../../services/toast';
 
 /**
  * Interface représentant un ouvrier enrichi pour l'affichage dans le tableau de bord
@@ -29,9 +30,10 @@ export interface OuvrierDisplayItem {
   styleUrl: './ouvriers.css'
 })
 export class Ouvriers implements OnInit {
-  // Injection des services
+  // Services
   private authService = inject(AuthService);
   private apiService = inject(ApiService);
+  private toastService = inject(ToastService);
   private cd = inject(ChangeDetectorRef);
 
   // Informations utilisateur
@@ -101,7 +103,7 @@ export class Ouvriers implements OnInit {
    * Traite et enrichit les données des ouvriers avec le cumul d'heures prestées
    */
   private processOuvriersList(ouvriersApi: OuvrierApi[], sessionsApi: SessionTravailApi[]): void {
-    if (!ouvriersApi || ouvriersApi.length === 0) {
+    if (!ouvriersApi) {
       this.loadFallbackData();
       return;
     }
@@ -154,7 +156,7 @@ export class Ouvriers implements OnInit {
   private loadFallbackData(): void {
     const defaultOuvriers: OuvrierDisplayItem[] = [
       {
-        idOuvrier: '1',
+        idOuvrier: '11111111-1111-1111-1111-111111111111',
         nom: 'Doe',
         prenom: 'John',
         nomComplet: 'John Doe',
@@ -166,7 +168,7 @@ export class Ouvriers implements OnInit {
         nomChantierAffecte: 'Résidence Les Lilas'
       },
       {
-        idOuvrier: '2',
+        idOuvrier: '22222222-2222-2222-2222-222222222222',
         nom: 'Martin',
         prenom: 'Marc',
         nomComplet: 'Marc Martin',
@@ -178,7 +180,7 @@ export class Ouvriers implements OnInit {
         nomChantierAffecte: 'Tour Horizon'
       },
       {
-        idOuvrier: '3',
+        idOuvrier: '33333333-3333-3333-3333-333333333333',
         nom: 'Simpson',
         prenom: 'Homer',
         nomComplet: 'Homer Simpson',
@@ -251,27 +253,30 @@ export class Ouvriers implements OnInit {
     const isCreate = this.isCreateMode;
     const targetId = this.selectedOuvrierForEdit?.idOuvrier;
 
-    // Fermeture synchrone immédiate de la modale
-    this.closeOuvrierModal();
-
     if (isCreate) {
       this.apiService.createOuvrier(payload).subscribe({
         next: () => {
+          this.closeOuvrierModal();
           this.loadOuvriersData();
         },
         error: (err) => {
           console.error('Erreur lors de la création de l\'ouvrier :', err);
-          this.loadOuvriersData();
+          this.isSavingOuvrier = false;
+          this.ouvrierErrorMessage = err.error?.message || 'Erreur lors de la création de l\'ouvrier.';
+          this.cd.detectChanges();
         }
       });
     } else if (targetId) {
       this.apiService.updateOuvrier(targetId, payload).subscribe({
         next: () => {
+          this.closeOuvrierModal();
           this.loadOuvriersData();
         },
         error: (err) => {
           console.error('Erreur lors de la modification de l\'ouvrier :', err);
-          this.loadOuvriersData();
+          this.isSavingOuvrier = false;
+          this.ouvrierErrorMessage = err.error?.message || 'Erreur lors de la modification de l\'ouvrier.';
+          this.cd.detectChanges();
         }
       });
     }
@@ -285,49 +290,55 @@ export class Ouvriers implements OnInit {
     this.cd.detectChanges();
   }
 
-  /**
-   * Tri dynamique : Actifs d'abord (true avant false), puis par ordre alphabétique Nom / Prénom
-   */
-  private sortOuvriersList(): void {
-    this.ouvriersList.sort((a, b) => {
-      if (a.actif !== b.actif) {
-        return a.actif ? -1 : 1;
-      }
-      const cmpNom = a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' });
-      if (cmpNom !== 0) return cmpNom;
-      return a.prenom.localeCompare(b.prenom, 'fr', { sensitivity: 'base' });
-    });
-  }
-
-  /**
-   * Bascule rapidement le statut actif/inactif d'un ouvrier avec ré-ordonnancement dynamique immédiat
-   */
   toggleStatus(ouvrier: OuvrierDisplayItem): void {
-    const newStatus = !ouvrier.actif;
-    ouvrier.actif = newStatus;
+    const newActifState = !ouvrier.actif;
 
-    // Ré-ordonnancement dynamique immédiat du tableau
-    this.sortOuvriersList();
-    this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
-    this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
-    this.cd.detectChanges();
-
-    this.apiService.updateOuvrier(ouvrier.idOuvrier, { actif: newStatus }).subscribe({
-      error: (err) => {
-        console.error('Erreur lors du changement de statut :', err);
-        // En cas d'erreur de communication API, rétablissement du statut précédent
-        ouvrier.actif = !newStatus;
+    this.apiService.updateOuvrier(ouvrier.idOuvrier, { actif: newActifState }).subscribe({
+      next: () => {
+        ouvrier.actif = newActifState;
         this.sortOuvriersList();
         this.actifsCount = this.ouvriersList.filter(o => o.actif).length;
         this.inactifsCount = this.ouvriersList.filter(o => !o.actif).length;
         this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur lors de la modification du statut :', err);
+        this.loadOuvriersData();
       }
     });
   }
 
+  private sortOuvriersList(): void {
+    this.ouvriersList.sort((a, b) => {
+      if (a.actif !== b.actif) return a.actif ? -1 : 1;
+      return a.nom.localeCompare(b.nom);
+    });
+  }
+
   /**
-   * Déconnexion
+   * Suppression d'un ouvrier (avec contrainte métier backend et alertes esthétiques)
    */
+  deleteOuvrier(ouvrier: OuvrierDisplayItem): void {
+    this.toastService.confirm({
+      title: 'Supprimer l\'ouvrier',
+      message: `Voulez-vous vraiment supprimer l'ouvrier ${ouvrier.nomComplet} ?`,
+      confirmText: 'Supprimer',
+      type: 'danger',
+      onConfirm: () => {
+        this.apiService.deleteOuvrier(ouvrier.idOuvrier).subscribe({
+          next: () => {
+            this.toastService.success(`L'ouvrier ${ouvrier.nomComplet} a été supprimé.`);
+            this.loadOuvriersData();
+          },
+          error: (err) => {
+            const msg = err.error?.message || 'Erreur lors de la suppression de l\'ouvrier.';
+            this.toastService.error(msg, 'Action impossible');
+          }
+        });
+      }
+    });
+  }
+
   logout(): void {
     this.authService.logout();
   }

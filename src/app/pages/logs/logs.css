@@ -1,0 +1,4 @@
+/* Styles spécifiques au module Journal d'Audit */
+.font-monospace {
+  font-family: var(--bs-font-monospace);
+}

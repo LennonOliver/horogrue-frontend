@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth';
+import { ToastService } from './services/toast';
 
 /**
  * Composant racine de l'application HoroGrue
- * Gère le layout global (Sidebar unique) et masque la navigation sur la page de connexion (/login)
+ * Gère le layout global, la Sidebar unique, les notifications Toasts et la modale de confirmation personnalisée.
  */
 @Component({
   selector: 'app-root',
@@ -17,22 +18,28 @@ import { AuthService } from './services/auth';
 export class App {
   title = 'horogrue-frontend';
 
-  // Services d'authentification et de routage
+  // Services d'authentification, de routage et de notifications
   public authService = inject(AuthService);
+  public toastService = inject(ToastService);
   private router = inject(Router);
 
-  /**
-   * Indique si la barre de navigation globale doit être affichée.
-   * Masquée si déconnecté ou si l'utilisateur se trouve sur la page /login.
-   */
   get showSidebar(): boolean {
     return this.authService.isLoggedIn() && !this.router.url.includes('login');
   }
 
-  /**
-   * Action de déconnexion globale
-   */
   logout(): void {
     this.authService.logout();
+  }
+
+  onConfirm(): void {
+    const dialog = this.toastService.confirmModal();
+    if (dialog && dialog.onConfirm) {
+      dialog.onConfirm();
+    }
+    this.toastService.closeConfirm();
+  }
+
+  onCancel(): void {
+    this.toastService.closeConfirm();
   }
 }

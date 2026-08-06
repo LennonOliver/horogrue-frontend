@@ -138,11 +138,14 @@
                 </div>
               </td>
 
-              <!-- Actions : Modifier -->
+              <!-- Actions : Modifier & Supprimer -->
               <td class="py-3 text-end" data-label="Actions">
                 <div class="d-inline-flex gap-1">
                   <button class="btn btn-primary btn-sm px-2 py-1 fw-medium rounded-2" (click)="openEditModal(ouvrier)" title="Modifier cet ouvrier">
                     <i class="bi bi-pencil-square me-1"></i> Modifier
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-medium rounded-2" (click)="deleteOuvrier(ouvrier)" title="Supprimer cet ouvrier">
+                    <i class="bi bi-trash me-1"></i> Supprimer
                   </button>
                 </div>
               </td>

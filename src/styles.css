@@ -41,6 +41,7 @@ body {
 /* ------------------------------------------------------------------------- */
 
 @media (max-width: 768px) {
+
   /* Conversion du layout principal en colonne sur mobile */
   div.d-flex.min-vh-100 {
     flex-direction: column !important;
@@ -95,7 +96,7 @@ body {
     gap: 1rem;
   }
 
-  header.d-flex > div:first-child {
+  header.d-flex>div:first-child {
     width: 100%;
   }
 
@@ -176,8 +177,8 @@ body {
   }
 
   /* Empeche le débordement des textes longs et badges sur mobile */
-  .table-responsive-cards tbody td > div,
-  .table-responsive-cards tbody td > span {
+  .table-responsive-cards tbody td>div,
+  .table-responsive-cards tbody td>span {
     max-width: calc(100% - 110px) !important;
     text-align: right;
     word-break: break-word;

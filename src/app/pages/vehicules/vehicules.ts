@@ -347,6 +347,16 @@ export class Vehicules implements OnInit {
     this.showVehiculeModal = true;
   }
 
+  private formatApiError(err: any, fallbackMessage: string): string {
+    if (err?.error?.message) {
+      if (Array.isArray(err.error.message)) {
+        return err.error.message.join(', ');
+      }
+      return String(err.error.message);
+    }
+    return fallbackMessage;
+  }
+
   submitSaveVehicule(): void {
     if (!this.editForm.immatriculation || !this.editForm.numeroChassis) {
       this.vehiculeErrorMessage = 'L\'immatriculation et le numéro de châssis sont obligatoires.';
@@ -355,6 +365,11 @@ export class Vehicules implements OnInit {
 
     const cleanImmat = this.editForm.immatriculation.trim().toUpperCase();
     const cleanChassis = this.editForm.numeroChassis.trim().toUpperCase();
+
+    if (cleanImmat.length > 9) {
+      this.vehiculeErrorMessage = "L'immatriculation ne peut pas comporter plus de 9 caractères.";
+      return;
+    }
 
     // 1. Vérification d'unicité de l'immatriculation sur le Front
     const duplicateImmat = this.vehiculesList.find(v => 
@@ -391,8 +406,8 @@ export class Vehicules implements OnInit {
       immatriculation: cleanImmat,
       numeroChassis: cleanChassis,
       dateMec: this.editForm.dateMec || undefined,
-      nomMarque: this.editForm.nomMarque || undefined,
-      nomModele: this.editForm.nomModele || undefined,
+      nomMarque: this.editForm.nomMarque?.trim() || undefined,
+      nomModele: this.editForm.nomModele?.trim() || undefined,
       kilometrageActuel: Number(this.editForm.kilometrageActuel) || 0,
       kmProchainEntretien: this.editForm.kmProchainEntretien ? Number(this.editForm.kmProchainEntretien) : undefined,
       dateProchainCt: this.editForm.dateProchainCt || undefined
@@ -401,29 +416,33 @@ export class Vehicules implements OnInit {
     const isCreate = this.isCreateMode;
     const editVehiculeId = this.selectedVehiculeForEdit?.idVehicule;
 
-    // Fermeture immédiate et instantanée de la modale
-    this.closeVehiculeModal();
+    this.isSavingVehicule = true;
+    this.vehiculeErrorMessage = '';
 
     if (isCreate) {
       // 1. Mode Création
       this.apiService.createVehicule(payload).subscribe({
         next: () => {
+          this.closeVehiculeModal();
           this.loadVehicules();
         },
         error: (err) => {
-          console.error('Erreur lors de la création du véhicule :', err);
-          this.loadVehicules();
+          this.isSavingVehicule = false;
+          this.vehiculeErrorMessage = this.formatApiError(err, 'Erreur lors de la création du véhicule.');
+          this.cd.detectChanges();
         }
       });
     } else if (editVehiculeId) {
       // 2. Mode Modification
       this.apiService.updateVehicule(editVehiculeId, payload).subscribe({
         next: () => {
+          this.closeVehiculeModal();
           this.loadVehicules();
         },
         error: (err) => {
-          console.error('Erreur lors de la modification du véhicule :', err);
-          this.loadVehicules();
+          this.isSavingVehicule = false;
+          this.vehiculeErrorMessage = this.formatApiError(err, 'Erreur lors de la modification du véhicule.');
+          this.cd.detectChanges();
         }
       });
     }
